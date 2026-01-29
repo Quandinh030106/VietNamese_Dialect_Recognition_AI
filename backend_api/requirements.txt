@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-torch
-torchaudio
+torch --index-url https://download.pytorch.org/whl/cpu
+torchaudio --index-url https://download.pytorch.org/whl/cpu
 librosa
 numpy
