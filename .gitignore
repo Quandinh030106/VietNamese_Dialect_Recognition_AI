@@ -1,0 +1,16 @@
+data/
+dataset/
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+
+node_modules/
+dist/
+.DS_Store
+
+
+venv/
+env/
+CP_env/
