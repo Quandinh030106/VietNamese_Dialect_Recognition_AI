@@ -10,19 +10,21 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Mic, Upload, Play, Square, Loader2, Music, CheckCircle } from 'lucide-react';
+// Import thêm HelpCircle và X cho popup hướng dẫn
+import { Mic, Upload, Play, Square, Loader2, Music, CheckCircle, HelpCircle, X } from 'lucide-react';
 
 // Đăng ký ChartJS
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function App() {
-  const [activeTab, setActiveTab] = useState('upload'); // 'upload' hoặc 'record'
+  const [activeTab, setActiveTab] = useState('upload'); 
   const [file, setFile] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -62,7 +64,7 @@ function App() {
       setError(null);
     } catch (err) {
       console.error("Error accessing microphone:", err);
-      setError("Không thể truy cập microphone. Vui lòng kiểm tra quyền trên trình duyệt.");
+      setError("Không thể truy cập microphone. Vui lòng cấp quyền trên trình duyệt.");
     }
   };
 
@@ -85,14 +87,13 @@ function App() {
     formData.append("file", file);
 
     try {
-      // GỌI TỚI BACKEND ĐANG CHẠY Ở PORT 8000
       const response = await axios.post("https://quan030106-vietnamese-dialect-api.hf.space/predict", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setResult(response.data);
     } catch (err) {
       console.error(err);
-      setError("Lỗi kết nối! Hãy chắc chắn Backend đang chạy (uvicorn main:app).");
+      setError("Lỗi kết nối! Hãy kiểm tra lại Backend trên Hugging Face.");
     } finally {
       setIsLoading(false);
     }
@@ -106,12 +107,12 @@ function App() {
         label: 'Độ tin cậy (%)',
         data: Object.values(result.probabilities).map(val => (val * 100).toFixed(1)),
         backgroundColor: [
-          'rgba(239, 68, 68, 0.6)',   // Red
-          'rgba(249, 115, 22, 0.6)',  // Orange
-          'rgba(234, 179, 8, 0.6)',   // Yellow
-          'rgba(34, 197, 94, 0.6)',   // Green
-          'rgba(59, 130, 246, 0.6)',  // Blue
-          'rgba(168, 85, 247, 0.6)',  // Purple
+          'rgba(239, 68, 68, 0.6)',
+          'rgba(249, 115, 22, 0.6)',
+          'rgba(234, 179, 8, 0.6)',
+          'rgba(34, 197, 94, 0.6)',
+          'rgba(59, 130, 246, 0.6)',
+          'rgba(168, 85, 247, 0.6)',
         ],
         borderWidth: 1,
         borderRadius: 6,
@@ -132,7 +133,67 @@ function App() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 font-sans text-gray-800 bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+      
+      {/* --- POPUP HƯỚNG DẪN (MODAL) --- */}
+      {showGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-scale-up">
+            <button 
+              onClick={() => setShowGuide(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            
+            <h3 className="text-2xl font-bold text-indigo-900 mb-6 flex items-center gap-2">
+              <HelpCircle className="text-indigo-600" /> Hướng dẫn sử dụng
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">1</div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Chọn nguồn âm thanh</h4>
+                  <p className="text-sm text-gray-500">Tải lên file .wav/.mp3 hoặc ghi âm trực tiếp giọng nói.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">2</div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Bấm "Dự đoán ngay"</h4>
+                  <p className="text-sm text-gray-500">AI sẽ phân tích đặc trưng giọng nói trong vài giây.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">3</div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">Xem kết quả</h4>
+                  <p className="text-sm text-gray-500">Biểu đồ xác suất vùng miền sẽ hiện ra chi tiết.</p>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowGuide(false)}
+              className="w-full mt-8 bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+            >
+              Đã hiểu, bắt đầu thôi!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- GIAO DIỆN CHÍNH --- */}
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row min-h-[600px] relative">
+        
+        {/* NÚT BẬT HƯỚNG DẪN */}
+        <button 
+          onClick={() => setShowGuide(true)}
+          className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all"
+          title="Hướng dẫn sử dụng"
+        >
+          <HelpCircle size={24} />
+        </button>
         
         {/* CỘT TRÁI: INPUT */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between border-r border-gray-100 bg-white">
@@ -140,7 +201,6 @@ function App() {
             <h1 className="text-3xl font-extrabold text-indigo-900 mb-2 tracking-tight">Nhận diện Vùng miền</h1>
             <p className="text-gray-500 mb-8">AI phân tích giọng nói tiếng Việt</p>
 
-            {/* TAB CHUYỂN ĐỔI */}
             <div className="flex bg-gray-100 p-1.5 rounded-xl mb-6">
               <button
                 onClick={() => setActiveTab('upload')}
@@ -160,7 +220,6 @@ function App() {
               </button>
             </div>
 
-            {/* KHUNG UPLOAD */}
             {activeTab === 'upload' && (
               <div className="border-2 border-dashed border-indigo-100 rounded-2xl p-10 text-center hover:border-indigo-400 hover:bg-indigo-50 transition-all group">
                 <input type="file" accept="audio/*" onChange={handleFileChange} className="hidden" id="file-upload" />
@@ -174,7 +233,6 @@ function App() {
               </div>
             )}
 
-            {/* KHUNG GHI ÂM */}
             {activeTab === 'record' && (
               <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-2xl border border-gray-100">
                 {isRecording ? (
@@ -201,7 +259,6 @@ function App() {
               </div>
             )}
 
-            {/* AUDIO PLAYER */}
             {audioUrl && (
               <div className="mt-6 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 flex items-center gap-4">
                 <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white shrink-0">
@@ -215,7 +272,6 @@ function App() {
             )}
           </div>
 
-          {/* NÚT SUBMIT */}
           <div className="mt-8">
             {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center border border-red-100">{error}</div>}
             
@@ -235,7 +291,6 @@ function App() {
 
         {/* CỘT PHẢI: KẾT QUẢ */}
         <div className="w-full md:w-1/2 bg-gray-50 p-8 md:p-12 flex flex-col justify-center relative overflow-hidden">
-            {/* Background trang trí */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
 
