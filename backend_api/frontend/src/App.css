@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Mic, Upload, Play, Square, Loader2, Music, CheckCircle } from 'lucide-react';
+import { Mic, Upload, Play, Square, Loader2, Music, CheckCircle, HelpCircle, X } from 'lucide-react';
 
 // Đăng ký ChartJS
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
